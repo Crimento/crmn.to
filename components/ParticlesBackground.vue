@@ -1,5 +1,5 @@
 <template>
-  <NuxtParticles id="tsparticles" :options="options" class="-z-10 absolute" />
+  <NuxtParticles id="tsparticles" :options="options" class="absolute -z-10" />
 </template>
 
 <script setup lang="ts">
@@ -15,10 +15,10 @@ const options = {
   particles: {
     color: { value: "#fff" },
     groups: {
-      veryclose: { number: { value: 50 }, zIndex: { value: 75 } },
-      close: { number: { value: 50 }, zIndex: { value: 50 } },
-      far: { number: { value: 50 }, zIndex: { value: 25 } },
-      veryfar: { number: { value: 50 }, zIndex: { value: 10 } },
+      veryclose: { number: { value: 15 }, zIndex: { value: 75 } },
+      close: { number: { value: 25 }, zIndex: { value: 50 } },
+      far: { number: { value: 20 }, zIndex: { value: 25 } },
+      veryfar: { number: { value: 20 }, zIndex: { value: 10 } },
     },
     move: {
       enable: true,
@@ -35,7 +35,7 @@ const options = {
     },
     number: {
       limit: { mode: "delete", value: 0 },
-      value: 175,
+      value: 100,
     },
     shape: { close: true, fill: true, options: {}, type: "circle" },
     size: {
@@ -78,5 +78,6 @@ const options = {
       },
     },
   },
+  fpsLimit: 60,
 };
 </script>
