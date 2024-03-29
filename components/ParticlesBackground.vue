@@ -15,6 +15,19 @@
 
 <script setup lang="ts">
 import type { Container } from "@tsparticles/engine";
+import { tsParticles } from "@tsparticles/engine";
+import { loadBasic } from "@tsparticles/basic";
+import { loadImageShape } from "@tsparticles/shape-image";
+import { loadRotateUpdater } from "@tsparticles/updater-rotate";
+import { loadEmittersPlugin } from "@tsparticles/plugin-emitters";
+
+if (import.meta.client) {
+  await loadBasic(tsParticles);
+  await loadImageShape(tsParticles);
+  await loadRotateUpdater(tsParticles);
+  await loadEmittersPlugin(tsParticles);
+}
+
 const isLoading = ref({});
 isLoading.value = true;
 
@@ -82,8 +95,6 @@ const options = {
 };
 
 const onLoad = (container: Container) => {
-  container.pause();
   isLoading.value = false;
-  container.play();
 };
 </script>

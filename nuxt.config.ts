@@ -19,8 +19,7 @@ export default defineNuxtConfig({
     dataValue: "theme",
   },
   particles: {
-    mode: "full",
-    lazy: true,
+    mode: "custom",
   },
   postcss: {
     plugins: {
