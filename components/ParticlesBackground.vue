@@ -1,14 +1,22 @@
 <template>
-  <NuxtParticles id="tsparticles" :options="options" class="absolute -z-10" />
+  <div
+    v-if="isLoading"
+    class="absolute -z-20 flex size-full place-content-center place-items-center bg-black text-center"
+  >
+    <span class="text-9xl uppercase">Loading background...</span>
+  </div>
+  <NuxtParticles
+    id="tsparticles"
+    :options="options"
+    class="absolute -z-10"
+    @load="onLoad"
+  />
 </template>
 
 <script setup lang="ts">
-import { tsParticles } from "@tsparticles/engine";
-import { loadSlim } from "@tsparticles/slim";
-import { loadEmittersPlugin } from "@tsparticles/plugin-emitters";
-
-await loadSlim(tsParticles);
-await loadEmittersPlugin(tsParticles);
+import type { Container } from "@tsparticles/engine";
+const isLoading = ref({});
+isLoading.value = true;
 
 const options = {
   background: { color: { value: "#000" } },
@@ -58,26 +66,24 @@ const options = {
         options: {
           images: {
             src: "/images/amogus.svg",
+            width: 128,
+            height: 167,
           },
         },
       },
-      size: { value: 75 },
+      size: { value: 65 },
       rotate: {
         value: { min: 0, max: 360 },
-        animation: { enable: true, speed: 15, sync: true },
+        animation: { enable: true, speed: 10, sync: true },
       },
     },
     position: { x: -5, y: 55 },
   },
-  interactivity: {
-    detectsOn: "window",
-    events: {
-      onClick: {
-        enable: true,
-        mode: "repulse",
-      },
-    },
-  },
-  fpsLimit: 60,
+};
+
+const onLoad = (container: Container) => {
+  container.pause();
+  isLoading.value = false;
+  container.play();
 };
 </script>

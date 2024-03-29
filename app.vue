@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-screen w-screen flex-col bg-transparent font-mono">
-    <ParticlesBackground />
     <AppHeader @hover-link-change="changeHoveredLink" />
     <div class="flex flex-1 flex-col place-content-center place-items-center">
+      <ParticlesBackground />
       <NuxtPage :hovered-link="hoveredLink" />
     </div>
     <AppFooter />

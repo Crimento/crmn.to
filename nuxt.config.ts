@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false,
   app: {
     pageTransition: { name: "page", mode: "out-in" },
     head: {
@@ -18,7 +19,8 @@ export default defineNuxtConfig({
     dataValue: "theme",
   },
   particles: {
-    mode: "custom",
+    mode: "full",
+    lazy: true,
   },
   postcss: {
     plugins: {

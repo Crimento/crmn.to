@@ -1,6 +1,10 @@
 <template>
   <div class="card w-64 bg-base-100/90 p-1 md:w-96">
-    <img :src="imageLink" />
+    <img v-if="hoveredLink == 'none'" src="/images/a_default.svg" />
+    <img v-if="hoveredLink == 'Home'" src="/images/a_smile.svg" />
+    <img v-if="hoveredLink == 'About'" src="/images/a_fun.svg" />
+    <img v-if="hoveredLink == 'CV'" src="/images/a_happy.svg" />
+    <img v-if="hoveredLink == 'Github'" src="/images/a_shock.svg" />
     <div class="card-body">
       <p class="text-center text-3xl">Hello, world!</p>
       <p class="text-lg">
@@ -30,23 +34,6 @@ const props = defineProps({
     type: String,
     default: "none",
   },
-});
-
-const imageLink = computed(() => {
-  switch (props.hoveredLink) {
-    case "none":
-      return "/images/a_default.svg";
-    case "Home":
-      return "/images/a_smile.svg";
-    case "About":
-      return "/images/a_fun.svg";
-    case "CV":
-      return "/images/a_happy.svg";
-    case "Github":
-      return "/images/a_shock.svg";
-    default:
-      return "/images/a_dead.svg";
-  }
 });
 </script>
 
