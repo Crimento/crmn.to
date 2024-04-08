@@ -17,6 +17,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST_IP }} "
             cd /home/website/crmn.to
             git fetch && git reset --hard origin/master
+            nvm install 20
+            nvm use 20
             npm install
             npm run build
             pm2 delete crmn.to
