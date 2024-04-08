@@ -21,6 +21,7 @@ jobs:
             nvm install 20
             nvm use 20
             npm install
+            npm install pm2
             npm run build
             pm2 delete crmn.to
             pm2 start ecosystem.config.cjs
