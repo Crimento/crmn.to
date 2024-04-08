@@ -1,22 +1,20 @@
 <template>
   <div class="card w-64 bg-base-100/90 p-1 md:w-96">
-    <img
-      v-if="hoveredLink == 'none'"
-      class="w-full"
-      src="/images/a_default.svg"
-    />
-    <img
-      v-if="hoveredLink == 'Home'"
-      class="w-full"
-      src="/images/a_smile.svg"
-    />
-    <img v-if="hoveredLink == 'About'" class="w-full" src="/images/a_fun.svg" />
-    <img v-if="hoveredLink == 'CV'" class="w-full" src="/images/a_happy.svg" />
-    <img
-      v-if="hoveredLink == 'Github'"
-      class="w-full"
-      src="/images/a_shock.svg"
-    />
+    <div class="flex h-96 w-full place-content-center">
+      <NuxtImg
+        v-if="hoveredLink == 'none'"
+        preload
+        src="/images/a_default.svg"
+      />
+      <NuxtImg v-if="hoveredLink == 'Home'" preload src="/images/a_smile.svg" />
+      <NuxtImg v-if="hoveredLink == 'About'" preload src="/images/a_fun.svg" />
+      <NuxtImg v-if="hoveredLink == 'CV'" preload src="/images/a_happy.svg" />
+      <NuxtImg
+        v-if="hoveredLink == 'Github'"
+        preload
+        src="/images/a_shock.svg"
+      />
+    </div>
     <div class="card-body">
       <p class="text-center text-3xl">Hello, world!</p>
       <p class="text-lg">

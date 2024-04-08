@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "@nuxtjs/tailwindcss",
     "nuxt-particles",
+    "@nuxt/image",
   ],
   colorMode: {
     preference: "mytheme",
