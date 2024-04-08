@@ -111,7 +111,10 @@
         </a>
         themed around nuclear wasteland;
       </li>
-      <li>Created this website to test my web developer skills.</li>
+      <li>
+        Created this website to test my web developer skills (auto deployed
+        using Github Actions).
+      </li>
     </ul>
     <p class="text-2xl">Who knows what's next?</p>
   </div>
