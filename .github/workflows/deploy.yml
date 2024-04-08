@@ -15,7 +15,7 @@ jobs:
       - name: Deploy to webserver
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST_IP }} "
-            source ~/.bash_profile
+            source ~/.bashrc
             cd /home/website/crmn.to
             git fetch && git reset --hard origin/master
             nvm install 20
