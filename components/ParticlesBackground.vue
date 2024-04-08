@@ -20,12 +20,14 @@ import { loadBasic } from "@tsparticles/basic";
 import { loadImageShape } from "@tsparticles/shape-image";
 import { loadRotateUpdater } from "@tsparticles/updater-rotate";
 import { loadEmittersPlugin } from "@tsparticles/plugin-emitters";
+import { loadExternalRepulseInteraction } from "@tsparticles/interaction-external-repulse";
 
 if (import.meta.client) {
   await loadBasic(tsParticles);
   await loadImageShape(tsParticles);
   await loadRotateUpdater(tsParticles);
   await loadEmittersPlugin(tsParticles);
+  await loadExternalRepulseInteraction(tsParticles);
 }
 
 const isLoading = ref({});
@@ -91,6 +93,15 @@ const options = {
       },
     },
     position: { x: -5, y: 55 },
+  },
+  interactivity: {
+    detectsOn: "window",
+    events: {
+      onClick: {
+        enable: true,
+        mode: "repulse",
+      },
+    },
   },
 };
 
