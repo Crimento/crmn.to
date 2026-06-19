@@ -1,0 +1,118 @@
+---
+import Image from "astro/components/Image.astro";
+import DefaultLayout from "../layouts/DefaultLayout.astro";
+import {
+  fetchPrismicSingleton,
+  getRichTextBlockHtml,
+  getRichTextHtml,
+  getRichTextValue,
+} from "../lib/prismic";
+
+const stack = await fetchPrismicSingleton("stack");
+const stackTitle = getRichTextValue(stack?.data.stack_title);
+const stackIntro = stack?.data.stack_intro || [];
+const stackOutro = stack?.data.stack_outro || [];
+
+const products = (stack?.data.stack_products || []).map((product) => ({
+  title: getRichTextValue(product.stack_product_title),
+  type: product.stack_product_type || "Other",
+  image: product.stack_product_image,
+  link: product.stack_product_link?.url,
+}));
+
+const categories = [];
+const categoriesByName = new Map();
+
+for (const product of products) {
+  if (!categoriesByName.has(product.type)) {
+    const category = {
+      name: product.type,
+      products: [],
+    };
+
+    categoriesByName.set(product.type, category);
+    categories.push(category);
+  }
+
+  categoriesByName.get(product.type).products.push(product);
+}
+---
+
+<DefaultLayout>
+  <section class="space-y-8">
+    <div class="space-y-4">
+      {
+        stackTitle && (
+          <h1 class="text-3xl leading-tight font-semibold">{stackTitle}</h1>
+        )
+      }
+
+      {
+        stackIntro.length > 0 && (
+          <div class="space-y-3">
+            {stackIntro.map((block) => (
+              <p
+                class="text-base-content/90 leading-relaxed"
+                set:html={getRichTextBlockHtml(block)}
+              />
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    {
+      categories.map((category) => (
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">{category.name}</h2>
+
+          <div class="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+            {category.products.map((product) => {
+              const productContent = (
+                <>
+                  <span class="border-base-300 flex aspect-square w-20 items-center justify-center border bg-white p-3 transition-colors group-hover:border-primary">
+                    {product.image?.url && (
+                      <Image
+                        src={product.image.url}
+                        alt={product.image.alt || product.title}
+                        width={product.image.dimensions?.width || 80}
+                        height={product.image.dimensions?.height || 80}
+                        loading="eager"
+                        class="max-h-full max-w-full object-contain"
+                      />
+                    )}
+                  </span>
+
+                  <span class="text-base-content/90 max-w-28 text-center text-sm leading-tight group-hover:text-primary">
+                    {product.title}
+                  </span>
+                </>
+              );
+
+              return product.link ? (
+                <a
+                  href={product.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="group flex flex-col items-center gap-2"
+                >
+                  {productContent}
+                </a>
+              ) : (
+                <div class="group flex flex-col items-center gap-2">
+                  {productContent}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))
+    }
+
+    {
+      stackOutro.length > 0 && (
+        <section class="space-y-3" set:html={getRichTextHtml(stackOutro)} />
+      )
+    }
+  </section>
+</DefaultLayout>

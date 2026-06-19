@@ -1,0 +1,108 @@
+---
+import a_defaultUrl from "../assets/avatar/a_default.svg?url";
+---
+
+<div class="avatar mx-auto my-5">
+  <div
+    class="ring-primary ring-offset-base-100 w-48 rounded-full ring-2 ring-offset-2"
+  >
+    <img
+      src={a_defaultUrl}
+      alt="Default avatar"
+      data-page-avatar-image
+      data-default-src={a_defaultUrl}
+      data-default-alt="Default avatar"
+      class="block w-full rounded-full"
+      fetchpriority="high"
+    />
+  </div>
+</div>
+
+<script>
+  const avatarControllerKey = "__pageAvatarController";
+
+  if (!window[avatarControllerKey]) {
+    const controller = new AbortController();
+    window[avatarControllerKey] = controller;
+
+    const getAvatarImage = () =>
+      document.querySelector("[data-page-avatar-image]");
+
+    const setAvatar = (src, alt) => {
+      const image = getAvatarImage();
+      if (!(image instanceof HTMLImageElement) || !src) return;
+
+      image.src = src;
+      image.alt = alt || image.dataset.defaultAlt || "";
+    };
+
+    const resetAvatar = () => {
+      const image = getAvatarImage();
+      if (!(image instanceof HTMLImageElement)) return;
+
+      image.src = image.dataset.defaultSrc || image.src;
+      image.alt = image.dataset.defaultAlt || "";
+    };
+
+    const getAvatarTrigger = (target) =>
+      target instanceof Element
+        ? target.closest("[data-page-avatar-src]")
+        : null;
+
+    document.addEventListener(
+      "pointerover",
+      (event) => {
+        const trigger = getAvatarTrigger(event.target);
+        if (
+          !trigger ||
+          (event.relatedTarget instanceof Node &&
+            trigger.contains(event.relatedTarget))
+        ) {
+          return;
+        }
+
+        setAvatar(trigger.dataset.pageAvatarSrc, trigger.dataset.pageAvatarAlt);
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener(
+      "pointerout",
+      (event) => {
+        const trigger = getAvatarTrigger(event.target);
+        if (
+          !trigger ||
+          (event.relatedTarget instanceof Node &&
+            trigger.contains(event.relatedTarget))
+        ) {
+          return;
+        }
+
+        resetAvatar();
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener(
+      "focusin",
+      (event) => {
+        const trigger = getAvatarTrigger(event.target);
+        if (!trigger) return;
+
+        setAvatar(trigger.dataset.pageAvatarSrc, trigger.dataset.pageAvatarAlt);
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener(
+      "focusout",
+      (event) => {
+        const trigger = getAvatarTrigger(event.target);
+        if (!trigger) return;
+
+        resetAvatar();
+      },
+      { signal: controller.signal },
+    );
+  }
+</script>

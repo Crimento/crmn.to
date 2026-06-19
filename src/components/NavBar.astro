@@ -1,0 +1,70 @@
+---
+import a_happyUrl from "../assets/avatar/a_happy.svg?url";
+import a_lookingUrl from "../assets/avatar/a_looking.svg?url";
+import a_scaredUrl from "../assets/avatar/a_scared.svg?url";
+
+const normalizePath = (path) => path.replace(/\/$/, "") || "/";
+const currentPath = normalizePath(Astro.url.pathname);
+const isActivePath = (path) => currentPath === normalizePath(path);
+const navLinkClasses = (path) => [
+  "btn",
+  isActivePath(path) ? "btn-primary" : "btn-ghost",
+];
+---
+
+<div class="navbar">
+  <div class="navbar-start"></div>
+  <div class="navbar-center">
+    <ul class="menu menu-vertical lg:menu-horizontal uppercase">
+      <li>
+        <a
+          class:list={navLinkClasses("/")}
+          aria-current={isActivePath("/") ? "page" : undefined}
+          href="/"
+          data-page-avatar-src={a_lookingUrl}
+          data-page-avatar-alt="Avatar looking to the side">Home</a
+        >
+      </li>
+      <li>
+        <a
+          class:list={navLinkClasses("/experience")}
+          aria-current={isActivePath("/experience") ? "page" : undefined}
+          href="/experience"
+          data-page-avatar-src={a_lookingUrl}
+          data-page-avatar-alt="Avatar looking to the side">Experience</a
+        >
+      </li>
+      <li>
+        <a
+          class:list={navLinkClasses("/stack")}
+          aria-current={isActivePath("/stack") ? "page" : undefined}
+          href="/stack"
+          data-page-avatar-src={a_lookingUrl}
+          data-page-avatar-alt="Avatar looking to the side"
+          >Stack & Preferences</a
+        >
+      </li>
+      <li>
+        <a
+          class="btn btn-ghost"
+          href="https://github.com/crimento"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-page-avatar-src={a_scaredUrl}
+          data-page-avatar-alt="Scared avatar">GitHub</a
+        >
+      </li>
+      <li>
+        <a
+          class="btn btn-ghost"
+          href="https://www.linkedin.com/in/crimento/"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-page-avatar-src={a_happyUrl}
+          data-page-avatar-alt="Happy avatar">Hire me</a
+        >
+      </li>
+    </ul>
+  </div>
+  <div class="navbar-end"></div>
+</div>

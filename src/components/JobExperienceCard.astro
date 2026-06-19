@@ -1,0 +1,111 @@
+---
+import { getRichTextBlockHtml, getRichTextValue } from "../lib/prismic";
+
+import { Image } from "astro:assets";
+
+const { job, eagerLogo } = Astro.props;
+
+const badgeClassBySkillType = {
+  backend: "badge-primary",
+  frontend: "badge-secondary",
+  infrastructure: "badge-info",
+  "infrastructure:": "badge-info",
+  api: "badge-success",
+  tooling: "badge-warning",
+};
+
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+const formatDate = (dateValue) => {
+  if (!dateValue) return "";
+
+  return dateFormatter.format(new Date(`${dateValue}T00:00:00.000Z`));
+};
+
+const getSkillBadgeClass = (skillType) =>
+  badgeClassBySkillType[skillType] || "badge-neutral";
+
+const companyName = getRichTextValue(job.data.company_name);
+const jobTitle = getRichTextValue(job.data.job_title);
+const companyLogo = job.data.company_logo;
+const companyLink = job.data.company_link?.url;
+const jobStart = formatDate(job.data.job_start);
+const jobEnd = job.data.is_current_job
+  ? "Present"
+  : formatDate(job.data.job_end);
+const jobPeriod = [jobStart, jobEnd].filter(Boolean).join(" - ");
+const achievements = job.data.job_achievements || [];
+const skills = job.data.job_skills || [];
+---
+
+<article class="border-base-300 bg-base-100 border p-4">
+  <div class="grid gap-4 sm:grid-cols-[6rem_1fr]">
+    {
+      companyLogo?.url && (
+        <Image
+          src={companyLogo.url}
+          alt={companyLogo.alt || `${companyName} logo`}
+          width={companyLogo.dimensions?.width || 96}
+          height={companyLogo.dimensions?.height || 96}
+          loading={eagerLogo ? "eager" : "lazy"}
+          fetchpriority={eagerLogo ? "high" : "auto"}
+          class="border-base-300 bg-base-200 aspect-square w-24 border object-cover"
+        />
+      )
+    }
+
+    <div class="min-w-0">
+      {
+        companyLink ? (
+          <a
+            href={companyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="link-hover text-2xl leading-tight font-semibold"
+          >
+            {companyName}
+          </a>
+        ) : (
+          <h2 class="text-2xl leading-tight font-semibold">{companyName}</h2>
+        )
+      }
+
+      <p class="text-base-content/90 mt-2 text-lg leading-snug">{jobTitle}</p>
+
+      {
+        jobPeriod && (
+          <p class="text-base-content/70 mt-3 text-sm uppercase">{jobPeriod}</p>
+        )
+      }
+    </div>
+  </div>
+
+  {
+    achievements.length > 0 && (
+      <div class="mt-5 space-y-3">
+        {achievements.map((achievement) => (
+          <p
+            class="text-base-content/90 leading-relaxed"
+            set:html={getRichTextBlockHtml(achievement)}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  {
+    skills.length > 0 && (
+      <div class="mt-6 flex flex-wrap gap-2">
+        {skills.map((skill) => (
+          <span class:list={["badge", getSkillBadgeClass(skill.skill_type)]}>
+            {skill.skill_name}
+          </span>
+        ))}
+      </div>
+    )
+  }
+</article>

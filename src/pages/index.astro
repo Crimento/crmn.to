@@ -1,0 +1,37 @@
+---
+import DefaultLayout from "../layouts/DefaultLayout.astro";
+import {
+  fetchPrismicSingleton,
+  getRichTextBlockHtml,
+  getRichTextValue,
+} from "../lib/prismic";
+
+const homepage = await fetchPrismicSingleton("homepage");
+const homepageTitle = getRichTextValue(homepage?.data.title);
+const homepageContent = homepage?.data.content || [];
+---
+
+<DefaultLayout>
+  <section class="space-y-4">
+    {
+      homepageTitle && (
+        <h1 class="text-2xl leading-tight font-semibold">{homepageTitle}</h1>
+      )
+    }
+
+    {
+      homepageContent.length > 0 ? (
+        <div class="space-y-3">
+          {homepageContent.map((block) => (
+            <p
+              class="text-base-content/90 leading-relaxed"
+              set:html={getRichTextBlockHtml(block)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="text-base-content/70">No homepage content found.</p>
+      )
+    }
+  </section>
+</DefaultLayout>

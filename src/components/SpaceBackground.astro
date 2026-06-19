@@ -1,0 +1,311 @@
+---
+import amogusUrl from "../assets/amogus.svg?url";
+---
+
+<canvas
+  data-space-background
+  data-amogus-src={amogusUrl}
+  aria-hidden="true"
+  transition:persist="space-background"
+  class="fixed inset-0 z-0 h-dvh w-dvw touch-none bg-black"></canvas>
+
+<script>
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  const random = (min, max) => min + Math.random() * (max - min);
+  const canvasCleanups = new WeakMap();
+
+  const setupSpaceBackground = (canvas) => {
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    if (canvasCleanups.has(canvas)) return;
+
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+    if (canvas.dataset.spaceBackgroundActive === "true") return;
+    canvas.dataset.spaceBackgroundActive = "true";
+
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    const amogus = new Image();
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let stars = [];
+    let animationFrame = 0;
+    let lastTime = performance.now();
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    const traveler = {
+      x: 0,
+      y: 0,
+      size: 76,
+      vx: 18,
+      vy: 9,
+      angle: 0,
+      rotation: 0.18,
+    };
+
+    const makeStar = () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: random(0.5, 1.6),
+      alpha: random(0.35, 1),
+      phase: random(0, Math.PI * 2),
+      speed: random(6, 26),
+      twinkle: random(0.25, 0.9),
+    });
+
+    const recycleStar = (star) => {
+      star.x = -star.radius;
+      star.y = Math.random() * height;
+      star.radius = random(0.5, 1.6);
+      star.alpha = random(0.35, 1);
+      star.phase = random(0, Math.PI * 2);
+      star.speed = random(6, 26);
+      star.twinkle = random(0.25, 0.9);
+    };
+
+    const resetTraveler = (startVisible = false) => {
+      traveler.size = clamp(Math.min(width, height) * 0.12, 52, 104);
+      traveler.angle = random(-0.45, 0.45);
+      traveler.rotation = random(-1, 1);
+
+      const speed = random(18, 34);
+      const side = Math.floor(random(0, 4));
+      const margin = traveler.size;
+
+      if (startVisible) {
+        const angle = random(0, Math.PI * 2);
+        traveler.vx = Math.cos(angle) * speed;
+        traveler.vy = Math.sin(angle) * speed;
+
+        if (side === 0) {
+          traveler.x = random(margin, Math.max(margin, width * 0.22));
+          traveler.y = random(margin, height - margin);
+        } else if (side === 1) {
+          traveler.x = random(
+            Math.min(width - margin, width * 0.78),
+            width - margin,
+          );
+          traveler.y = random(margin, height - margin);
+        } else if (side === 2) {
+          traveler.x = random(margin, width - margin);
+          traveler.y = random(margin, Math.max(margin, height * 0.22));
+        } else {
+          traveler.x = random(margin, width - margin);
+          traveler.y = random(
+            Math.min(height - margin, height * 0.78),
+            height - margin,
+          );
+        }
+
+        return;
+      }
+
+      if (side === 0) {
+        traveler.x = -margin;
+        traveler.y = random(margin, height - margin);
+        traveler.vx = speed;
+        traveler.vy = random(-10, 10);
+      } else if (side === 1) {
+        traveler.x = width + margin;
+        traveler.y = random(margin, height - margin);
+        traveler.vx = -speed;
+        traveler.vy = random(-10, 10);
+      } else if (side === 2) {
+        traveler.x = random(margin, width - margin);
+        traveler.y = -margin;
+        traveler.vx = random(-10, 10);
+        traveler.vy = speed;
+      } else {
+        traveler.x = random(margin, width - margin);
+        traveler.y = height + margin;
+        traveler.vx = random(-10, 10);
+        traveler.vy = -speed;
+      }
+    };
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const starCount = clamp(Math.round((width * height) / 9000), 60, 170);
+      stars = Array.from({ length: starCount }, makeStar);
+      resetTraveler(true);
+      draw(performance.now());
+    };
+
+    const drawStars = (time) => {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, width, height);
+
+      for (const star of stars) {
+        const pulse = prefersReducedMotion.matches
+          ? star.alpha
+          : star.alpha +
+            Math.sin(time * 0.001 * star.twinkle + star.phase) * 0.18;
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 255, 255, ${clamp(pulse, 0.24, 1)})`;
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const drawTraveler = () => {
+      if (!amogus.complete || amogus.naturalWidth === 0) return;
+
+      ctx.save();
+      ctx.translate(traveler.x, traveler.y);
+      ctx.rotate(traveler.angle);
+      ctx.drawImage(
+        amogus,
+        -traveler.size / 2,
+        -traveler.size / 2,
+        traveler.size,
+        traveler.size,
+      );
+      ctx.restore();
+    };
+
+    const draw = (time) => {
+      drawStars(time);
+      drawTraveler();
+    };
+
+    const animate = (time) => {
+      const delta = Math.min((time - lastTime) / 1000, 0.08);
+      lastTime = time;
+
+      if (!prefersReducedMotion.matches) {
+        for (const star of stars) {
+          star.x += star.speed * delta;
+
+          if (star.x > width + star.radius) {
+            recycleStar(star);
+          }
+        }
+
+        if (!isDragging) {
+          traveler.x += traveler.vx * delta;
+          traveler.y += traveler.vy * delta;
+          traveler.angle += traveler.rotation * delta;
+
+          const margin = traveler.size * 1.8;
+          const outside =
+            traveler.x < -margin ||
+            traveler.x > width + margin ||
+            traveler.y < -margin ||
+            traveler.y > height + margin;
+
+          if (outside) resetTraveler();
+        }
+      }
+
+      draw(time);
+      animationFrame = window.requestAnimationFrame(animate);
+    };
+
+    const getCanvasPoint = (event) => {
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+    };
+
+    const isTravelerHit = (point) => {
+      const dx = point.x - traveler.x;
+      const dy = point.y - traveler.y;
+      return Math.hypot(dx, dy) <= traveler.size * 0.55;
+    };
+
+    canvas.addEventListener(
+      "pointerdown",
+      (event) => {
+        const point = getCanvasPoint(event);
+        if (!isTravelerHit(point)) return;
+
+        event.preventDefault();
+        isDragging = true;
+        dragOffsetX = point.x - traveler.x;
+        dragOffsetY = point.y - traveler.y;
+        canvas.setPointerCapture(event.pointerId);
+        canvas.style.cursor = "grabbing";
+      },
+      { signal },
+    );
+
+    canvas.addEventListener(
+      "pointermove",
+      (event) => {
+        const point = getCanvasPoint(event);
+
+        if (isDragging) {
+          traveler.x = point.x - dragOffsetX;
+          traveler.y = point.y - dragOffsetY;
+          return;
+        }
+
+        canvas.style.cursor = isTravelerHit(point) ? "grab" : "";
+      },
+      { signal },
+    );
+
+    const releaseTraveler = (event) => {
+      if (!isDragging) return;
+
+      isDragging = false;
+      traveler.vx = random(-24, 24);
+      traveler.vy = random(-18, 18);
+
+      if (Math.hypot(traveler.vx, traveler.vy) < 12) {
+        traveler.vx += traveler.vx < 0 ? -16 : 16;
+      }
+
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+
+      canvas.style.cursor = isTravelerHit(getCanvasPoint(event)) ? "grab" : "";
+    };
+
+    canvas.addEventListener("pointerup", releaseTraveler, { signal });
+    canvas.addEventListener("pointercancel", releaseTraveler, { signal });
+    window.addEventListener("resize", resize, { signal });
+
+    amogus.src = canvas.dataset.amogusSrc || "";
+    amogus.addEventListener("load", () => draw(performance.now()), { signal });
+
+    resize();
+    animationFrame = window.requestAnimationFrame(animate);
+
+    canvasCleanups.set(canvas, () => {
+      window.cancelAnimationFrame(animationFrame);
+      abortController.abort();
+      delete canvas.dataset.spaceBackgroundActive;
+      canvasCleanups.delete(canvas);
+    });
+  };
+
+  const setupSpaceBackgrounds = () => {
+    document
+      .querySelectorAll("[data-space-background]")
+      .forEach(setupSpaceBackground);
+  };
+
+  document.addEventListener("astro:page-load", setupSpaceBackgrounds);
+  setupSpaceBackgrounds();
+</script>

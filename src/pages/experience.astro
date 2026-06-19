@@ -1,0 +1,32 @@
+---
+import JobExperienceCard from "../components/JobExperienceCard.astro";
+import DefaultLayout from "../layouts/DefaultLayout.astro";
+import { fetchPrismicDocuments } from "../lib/prismic";
+
+const jobs = (await fetchPrismicDocuments("job_experience")).sort(
+  (firstJob, secondJob) =>
+    new Date(secondJob.data.job_start).getTime() -
+    new Date(firstJob.data.job_start).getTime(),
+);
+---
+
+<DefaultLayout>
+  <section class="space-y-4">
+    <div>
+      <h1 class="text-2xl font-semibold">My experience</h1>
+      <p class="text-base-content/70 mt-1">
+        Projects, roles, and practical work that shaped how I build software.
+      </p>
+    </div>
+
+    {
+      jobs.length > 0 ? (
+        jobs.map((job, index) => (
+          <JobExperienceCard job={job} eagerLogo={index === 0} />
+        ))
+      ) : (
+        <p class="text-base-content/70">No job experience records yet.</p>
+      )
+    }
+  </section>
+</DefaultLayout>

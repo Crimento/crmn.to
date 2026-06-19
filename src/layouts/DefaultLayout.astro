@@ -1,0 +1,35 @@
+---
+import "../css/app.css";
+
+import { ClientRouter } from "astro:transitions";
+
+import SpaceBackground from "../components/SpaceBackground.astro";
+import NavBar from "../components/NavBar.astro";
+import PageAvatar from "../components/PageAvatar.astro";
+---
+
+<html lang="en" data-theme="crimento">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <title>Aleksandr Abramenko personal website</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div
+      id="main-bg"
+      class="relative isolate flex min-h-screen min-w-screen max-h-screen items-start overflow-y-auto bg-black justify-center p-5"
+    >
+      <SpaceBackground />
+      <div class="card relative min-h-128 z-10 bg-base-200 w-2xl p-5">
+        <NavBar />
+        <PageAvatar />
+        <slot />
+      </div>
+    </div>
+  </body>
+</html>
