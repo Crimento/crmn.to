@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "build": "astro build && node scripts/generate-pdf.mjs",
+    "preview": "astro preview",
+    "pdf": "node scripts/generate-pdf.mjs"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,514 @@
+---
+import { Image } from "astro:assets";
+import aDefaultUrl from "../assets/avatar/a_default.svg?url";
+import {
+  fetchPrismicDocuments,
+  fetchPrismicSingleton,
+  getRichTextBlockHtml,
+  getRichTextHtml,
+  getRichTextValue,
+} from "../lib/prismic";
+
+const homepage = await fetchPrismicSingleton("homepage");
+const stack = await fetchPrismicSingleton("stack");
+const jobs = (await fetchPrismicDocuments("job_experience")).sort(
+  (firstJob, secondJob) =>
+    new Date(secondJob.data.job_start).getTime() -
+    new Date(firstJob.data.job_start).getTime(),
+);
+
+const homepageTitle = getRichTextValue(homepage?.data.title);
+const homepageContent = homepage?.data.content || [];
+
+const stackTitle = getRichTextValue(stack?.data.stack_title);
+const stackIntro = stack?.data.stack_intro || [];
+const stackOutro = stack?.data.stack_outro || [];
+
+const stackProducts = (stack?.data.stack_products || []).map((product) => ({
+  title: getRichTextValue(product.stack_product_title),
+  type: product.stack_product_type || "Other",
+  image: product.stack_product_image,
+  link: product.stack_product_link?.url,
+}));
+
+const stackCategories = [];
+const stackCategoriesByName = new Map();
+
+for (const product of stackProducts) {
+  if (!stackCategoriesByName.has(product.type)) {
+    const category = {
+      name: product.type,
+      products: [],
+    };
+
+    stackCategoriesByName.set(product.type, category);
+    stackCategories.push(category);
+  }
+
+  stackCategoriesByName.get(product.type).products.push(product);
+}
+
+const badgeClassBySkillType = {
+  backend: "badge-backend",
+  frontend: "badge-frontend",
+  infrastructure: "badge-infrastructure",
+  "infrastructure:": "badge-infrastructure",
+  api: "badge-api",
+  tooling: "badge-tooling",
+};
+
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+const formatDate = (dateValue) => {
+  if (!dateValue) return "";
+
+  return dateFormatter.format(new Date(`${dateValue}T00:00:00.000Z`));
+};
+
+const getJobPeriod = (job) => {
+  const start = formatDate(job.data.job_start);
+  const end =
+    job.data.is_current_job ? "Present" : formatDate(job.data.job_end);
+
+  return [start, end].filter(Boolean).join(" - ");
+};
+
+const getSkillBadgeClass = (skillType) =>
+  badgeClassBySkillType[skillType] || "badge-neutral";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex" />
+    <title>Aleksandr Abramenko - PDF</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 14mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        color: #121826;
+        background: #ffffff;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        font-size: 11px;
+        line-height: 1.5;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      strong {
+        font-weight: 700;
+      }
+
+      .document {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 104px 1fr;
+        gap: 18px;
+        align-items: center;
+        padding-bottom: 14px;
+        border-bottom: 2px solid #121826;
+      }
+
+      .avatar {
+        width: 104px;
+        height: 104px;
+        border: 3px solid #6b21a8;
+        border-radius: 999px;
+      }
+
+      .eyebrow {
+        color: #526071;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        max-width: 28rem;
+        margin-top: 4px;
+        font-size: 25px;
+      }
+
+      h2 {
+        padding-bottom: 6px;
+        border-bottom: 1px solid #cdd5df;
+        font-size: 17px;
+      }
+
+      h3 {
+        font-size: 13px;
+      }
+
+      .section {
+        display: grid;
+        gap: 10px;
+      }
+
+      .text-stack {
+        display: grid;
+        gap: 7px;
+      }
+
+      .job-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .job {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #d7dde6;
+        break-inside: avoid;
+      }
+
+      .job-header {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 10px;
+        align-items: start;
+      }
+
+      .company-logo {
+        width: 48px;
+        height: 48px;
+        border: 1px solid #d7dde6;
+        object-fit: cover;
+      }
+
+      .job-title {
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .job-period {
+        margin-top: 4px;
+        color: #526071;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 18px;
+        padding: 2px 7px;
+        border: 1px solid transparent;
+        color: #111827;
+        font-size: 9px;
+        font-weight: 700;
+      }
+
+      .badge-backend {
+        background: #e9d5ff;
+        border-color: #c084fc;
+      }
+
+      .badge-frontend {
+        background: #fed7aa;
+        border-color: #fb923c;
+      }
+
+      .badge-infrastructure {
+        background: #bae6fd;
+        border-color: #38bdf8;
+      }
+
+      .badge-api {
+        background: #bbf7d0;
+        border-color: #4ade80;
+      }
+
+      .badge-tooling {
+        background: #fef08a;
+        border-color: #facc15;
+      }
+
+      .badge-neutral {
+        background: #e5e7eb;
+        border-color: #cbd5e1;
+      }
+
+      .stack-category {
+        display: grid;
+        gap: 7px;
+        break-inside: avoid;
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 9px;
+      }
+
+      .product {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .product-logo {
+        display: flex;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #d7dde6;
+        background: #ffffff;
+        padding: 6px;
+      }
+
+      .product-logo img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .product-title {
+        max-width: 64px;
+        text-align: center;
+        font-size: 9px;
+        line-height: 1.2;
+      }
+
+      .rich-text {
+        display: grid;
+        gap: 6px;
+      }
+
+      .rich-text h2 {
+        margin-top: 3px;
+        padding: 0;
+        border: 0;
+        font-size: 12px;
+      }
+
+      .rich-text h3 {
+        font-size: 11px;
+      }
+
+      .rich-text ul,
+      .rich-text ol {
+        margin: 0 0 0 16px;
+        padding: 0;
+      }
+
+      .rich-text li + li {
+        margin-top: 2px;
+      }
+
+      @media screen {
+        body {
+          min-height: 100vh;
+          background: #e5e7eb;
+          padding: 24px;
+        }
+
+        .document {
+          max-width: 210mm;
+          min-height: 297mm;
+          margin: 0 auto;
+          background: #ffffff;
+          padding: 14mm;
+          box-shadow: 0 20px 60px rgb(15 23 42 / 0.2);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="document">
+      <header class="hero">
+        <img class="avatar" src={aDefaultUrl} alt="Aleksandr Abramenko avatar" />
+
+        <div>
+          <p class="eyebrow">Aleksandr Abramenko</p>
+          {homepageTitle && <h1>{homepageTitle}</h1>}
+        </div>
+      </header>
+
+      {
+        homepageContent.length > 0 && (
+          <section class="section">
+            <h2>Profile</h2>
+            <div class="text-stack">
+              {homepageContent.map((block) => (
+                <p set:html={getRichTextBlockHtml(block)} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        jobs.length > 0 && (
+          <section class="section">
+            <h2>Experience</h2>
+
+            <div class="job-list">
+              {jobs.map((job, index) => {
+                const companyName = getRichTextValue(job.data.company_name);
+                const jobTitle = getRichTextValue(job.data.job_title);
+                const companyLogo = job.data.company_logo;
+                const companyLink = job.data.company_link?.url;
+                const achievements = job.data.job_achievements || [];
+                const skills = job.data.job_skills || [];
+
+                return (
+                  <article class="job">
+                    <div class="job-header">
+                      {companyLogo?.url && (
+                        <Image
+                          src={companyLogo.url}
+                          alt={companyLogo.alt || `${companyName} logo`}
+                          width={48}
+                          height={48}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          class="company-logo"
+                        />
+                      )}
+
+                      <div>
+                        {companyLink ? (
+                          <h3>
+                            <a href={companyLink}>{companyName}</a>
+                          </h3>
+                        ) : (
+                          <h3>{companyName}</h3>
+                        )}
+                        <p class="job-title">{jobTitle}</p>
+                        <p class="job-period">{getJobPeriod(job)}</p>
+                      </div>
+                    </div>
+
+                    {achievements.length > 0 && (
+                      <div class="text-stack">
+                        {achievements.map((achievement) => (
+                          <p set:html={getRichTextBlockHtml(achievement)} />
+                        ))}
+                      </div>
+                    )}
+
+                    {skills.length > 0 && (
+                      <div class="badges">
+                        {skills.map((skill) => (
+                          <span
+                            class:list={[
+                              "badge",
+                              getSkillBadgeClass(skill.skill_type),
+                            ]}
+                          >
+                            {skill.skill_name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        stack && (
+          <section class="section">
+            <h2>{stackTitle || "Stack"}</h2>
+
+            {stackIntro.length > 0 && (
+              <div class="text-stack">
+                {stackIntro.map((block) => (
+                  <p set:html={getRichTextBlockHtml(block)} />
+                ))}
+              </div>
+            )}
+
+            {stackCategories.map((category) => (
+              <section class="stack-category">
+                <h3>{category.name}</h3>
+
+                <div class="product-grid">
+                  {category.products.map((product) => (
+                    <a
+                      href={product.link || undefined}
+                      class="product"
+                      target={product.link ? "_blank" : undefined}
+                      rel={product.link ? "noopener noreferrer" : undefined}
+                    >
+                      <span class="product-logo">
+                        {product.image?.url && (
+                          <Image
+                            src={product.image.url}
+                            alt={product.image.alt || product.title}
+                            width={44}
+                            height={44}
+                            loading="lazy"
+                          />
+                        )}
+                      </span>
+                      <span class="product-title">{product.title}</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            {stackOutro.length > 0 && (
+              <div class="rich-text" set:html={getRichTextHtml(stackOutro)} />
+            )}
+          </section>
+        )
+      }
+    </main>
+  </body>
+</html>
